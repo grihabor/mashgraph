@@ -7,8 +7,7 @@
  3. Поиск наилучшего сдвига для совмещения каналов.
  4. Сохранение результата.
 
-Возможны улучшения базового алгоритма.  
-Полное описание задания [здесь](https://github.com/grihabor/mashgraph/blob/master/task_01/align.pdf).
+Возможны улучшения базового алгоритма. Полное описание задания [здесь](https://github.com/grihabor/mashgraph/blob/master/task_01/align.pdf).
 
 ## Test data
 You can get all the bmp data [here](https://drive.google.com/drive/folders/0B_BgJJ4B78JRM0ZGdnRsOWNzVzQ).
