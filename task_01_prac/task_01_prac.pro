@@ -13,12 +13,17 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    model.cpp \
+    crop.cpp \
+    imageholder.cpp
 
 HEADERS  += mainwindow.h \
     matrix.hpp \
     matrix.h \
-    align.h \
-    controller.h
+    model.h \
+    observer.h \
+    crop.h \
+    imageholder.h
 
 FORMS    += mainwindow.ui

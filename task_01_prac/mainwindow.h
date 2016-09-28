@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 #include <QFileInfo>
+#include "model.h"
+#include "imageholder.h"
 
 namespace Ui {
 class MainWindow;
@@ -24,6 +26,8 @@ private slots:
 private:
     Ui::MainWindow *ui;
     QFileInfo fileinfo;
+    Model model;
+    std::vector<ImageHolder*> imageHolders;
 };
 
 #endif // MAINWINDOW_H

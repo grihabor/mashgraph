@@ -1,9 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QFileDialog>
-#include <QString>
-#include <QStringBuilder>
 #include <QDebug>
+#include "imageholder.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -13,9 +12,15 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     ui->filename_label->setText(fileinfo.absolutePath());
     ui->actions_widget->hide();
-    ui->original_widget->hide();
-    ui->align_widget->hide();
-    ui->aligned_image_layout->setAlignment(ui->aligned_image_label, Qt::AlignLeft | Qt::AlignTop);
+
+    imageHolders.push_back(new ImageHolder(Load, "Original"));
+    imageHolders.push_back(new ImageHolder(Align, "Aligned"));
+
+    for(auto imageHolder : imageHolders){
+        ui->views_layout->addWidget(imageHolder);
+        ui->views_layout->setAlignment(imageHolder, Qt::AlignLeft | Qt::AlignTop);
+        model.AddObserver(imageHolder);
+    }
 }
 
 MainWindow::~MainWindow()
@@ -34,12 +39,8 @@ void MainWindow::on_choose_file_button_clicked()
         return;
     }
     fileinfo.setFile(filename);
+    model.LoadImage(filename);
     ui->filename_label->setText(fileinfo.absoluteFilePath());
-
-    QPixmap pixmap(filename);
-    ui->image_label->setGeometry(pixmap.rect());
-    ui->image_label->setPixmap(pixmap);
-    ui->original_widget->show();
     ui->actions_widget->show();
 }
 
@@ -50,6 +51,8 @@ int system (QString command)
 
 void MainWindow::on_align_button_clicked()
 {
+    model.AlignImage();
+    /*
     system("pwd");
     QString exe_path = "../task_01/align_project/build/bin/align";
     QString input_img = fileinfo.absoluteFilePath();
@@ -64,5 +67,6 @@ void MainWindow::on_align_button_clicked()
     QPixmap pixmap(output_img);
     ui->aligned_image_label->setGeometry(pixmap.rect());
     ui->aligned_image_label->setPixmap(pixmap);
-    ui->align_widget->show();
+    //ui->align_widget->show();
+    */
 }
