@@ -309,16 +309,37 @@ void FinalGrads(Matrix<double>& val, double threshold1, double threshold2)
  */
 
 Model::Model()
-{}
+    : QObject()
+{
+    moveToThread(&thread);
+    thread.start();
+}
+
+Model::~Model()
+{
+    thread.quit();
+    thread.wait();
+}
 
 void Model::LoadImage(const QString& filename)
+{
+    QMetaObject::invokeMethod(this, "StartLoadImage", Q_ARG(QString, filename));
+}
+
+void Model::StartLoadImage(const QString& filename)
 {
     qoriginal_image = QImage(filename);
     original_image = QImageToImage(qoriginal_image);
     NotifyAll(Load, &qoriginal_image);
+    emit ImageLoaded(&qoriginal_image);
 }
 
 void Model::AlignImage()
+{
+    QMetaObject::invokeMethod(this, "StartAlignImage");
+}
+
+void Model::StartAlignImage()
 {
     Image& srcImage = this->original_image;
 
@@ -363,6 +384,7 @@ void Model::AlignImage()
     aligned_image = aligned_img;
     qaligned_image = ImageToQImage(aligned_img, qoriginal_image.format());
     NotifyAll(Align, &qaligned_image);
+    emit ImageAligned(&qaligned_image);
 }
 
 

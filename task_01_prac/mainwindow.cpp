@@ -7,20 +7,27 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    fileinfo("/home/")
+    fileinfo(QDir::currentPath())
 {
     ui->setupUi(this);
     ui->filename_label->setText(fileinfo.absolutePath());
     ui->actions_widget->hide();
 
-    imageHolders.push_back(new ImageHolder(Load, "Original"));
-    imageHolders.push_back(new ImageHolder(Align, "Aligned"));
+    imageHolders.push_back(new ImageHolder(Load, "Original", ui->progressBar));
+    imageHolders.push_back(new ImageHolder(Align, "Aligned", ui->progressBar));
 
     for(auto imageHolder : imageHolders){
         ui->views_layout->addWidget(imageHolder);
         ui->views_layout->setAlignment(imageHolder, Qt::AlignLeft | Qt::AlignTop);
-        model.AddObserver(imageHolder);
+        //model.AddObserver(imageHolder);
     }
+    QObject::connect(&model, SIGNAL(ImageLoaded(QImage*)), imageHolders[0], SLOT(HandleSignal(QImage*)));
+    QObject::connect(&model, SIGNAL(ImageAligned(QImage*)), imageHolders[1], SLOT(HandleSignal(QImage*)));
+
+    ui->progressBar->setMaximum(0);
+    ui->progressBar->setMinimum(0);
+    ui->progressBar->setValue(0);
+    ui->progressBar->hide();
 }
 
 MainWindow::~MainWindow()
@@ -39,34 +46,14 @@ void MainWindow::on_choose_file_button_clicked()
         return;
     }
     fileinfo.setFile(filename);
+    ui->progressBar->show();
     model.LoadImage(filename);
     ui->filename_label->setText(fileinfo.absoluteFilePath());
     ui->actions_widget->show();
 }
 
-int system (QString command)
-{
-    system(command.toStdString().c_str());
-}
-
 void MainWindow::on_align_button_clicked()
 {
+    ui->progressBar->show();
     model.AlignImage();
-    /*
-    system("pwd");
-    QString exe_path = "../task_01/align_project/build/bin/align";
-    QString input_img = fileinfo.absoluteFilePath();
-    QString output_dir = fileinfo.absolutePath() + "/output";
-    system("mkdir " + output_dir);
-    QString output_img = output_dir + "/" + fileinfo.fileName();
-    QString flag = "--align";
-    QString cmd = exe_path + ' ' + input_img + ' ' + output_img + ' ' + flag;
-    qInfo() << cmd;
-    system(cmd);
-
-    QPixmap pixmap(output_img);
-    ui->aligned_image_label->setGeometry(pixmap.rect());
-    ui->aligned_image_label->setPixmap(pixmap);
-    //ui->align_widget->show();
-    */
 }

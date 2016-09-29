@@ -3,6 +3,8 @@
 
 #include <QImage>
 #include <QFileInfo>
+#include <QThread>
+
 #include "matrix.h"
 #include "observer.h"
 
@@ -10,12 +12,17 @@ typedef Matrix<std::tuple<int, int, int>> Image;
 
 struct Crop;
 
-class Model
+class Model : public QObject
 {
+    Q_OBJECT
+
+    QThread thread;
+
     QImage qoriginal_image;
     QImage qaligned_image;
     Image original_image;
     Image aligned_image;
+
     std::vector<Observer*> observers;
 
     const double range_rel = 17./400.;
@@ -24,16 +31,22 @@ class Model
     //init this as range
     int bbox_limit = -1;
 
+public slots:
+    void StartAlignImage();
+    void StartLoadImage(const QString& filename);
+
 public:
     Model();
-    void LoadImage(const QString &fileinfo);
-    void AlignImage();
-
-    //QPixmap GetOriginalImage();
-    //QPixmap GetAlignedImage();
+    ~Model();
 
     void AddObserver(Observer*);
     void NotifyAll(Event, QImage* obj);
+    void LoadImage(const QString &fileinfo);
+    void AlignImage();
+
+signals:
+    void ImageLoaded(QImage* img);
+    void ImageAligned(QImage* img);
 
 private:
     Image custom(Image src_image, Matrix<double> kernel);
