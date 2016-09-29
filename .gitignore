@@ -4,3 +4,4 @@ task_01/align_project/align_channels/bridge/include/
 task_01/align_project/bridge/lib/
 task_01/align_project/build/
 task_01/mail.py
+git_add.sh
