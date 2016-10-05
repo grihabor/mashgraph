@@ -1,3 +1,5 @@
+typedef Matrix<std::tuple<int, int, int>> Image;
+
 template<typename ValueT>
 template<typename T>
 inline

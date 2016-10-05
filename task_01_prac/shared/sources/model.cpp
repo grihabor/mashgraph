@@ -1,5 +1,9 @@
-#include "model.h"
-#include "crop.h"
+#include "../headers/model.h"
+#include "../headers/crop.h"
+#include "../headers/pluginfilter.h"
+
+#include <QImage>
+#include <QDir>
 
 #define PI 3.14159265358979323846
 
@@ -308,17 +312,66 @@ void FinalGrads(Matrix<double>& val, double threshold1, double threshold2)
  * Model public functions
  */
 
-Model::Model()
-    : QObject()
+Model::Model(Logger& logger)
+    : pluginManager(logger), Log(logger)
 {
     moveToThread(&thread);
     thread.start();
+}
+
+void Model::RemoveFilterImages()
+{
+    for(int i = 2; i < images.size(); ++i){
+        delete images.at(i);
+    }
 }
 
 Model::~Model()
 {
     thread.quit();
     thread.wait();
+    RemoveFilterImages();
+}
+
+void Model::ApplyFilter(int index, double* params)
+{
+    QMetaObject::invokeMethod(this, "StartApplyFilter", Q_ARG(int, index), Q_ARG(double*, params));
+}
+
+void Model::StartApplyFilter(int index, double* params)
+{
+    double param = params[0];
+    Log(QString("Model: Start apply filter \'") + pluginManager.GetPlugins()[index]->Name().c_str()
+        + "\' with params: " + QString::number(param));
+    const char* fail = "Failed to apply filter: ";
+    if(images.size() == 0){
+        Log(QString(fail) + "No image to apply filter to");
+        return;
+    }
+    if(index >= pluginManager.GetPlugins().size()){
+        Log(QString(fail) + "No filter with index " + index);
+        return;
+    }
+    QImage* pQImage = images[images.size() - 1];
+    Image src_image = QImageToImage(*pQImage);
+    PluginFilter* filter = pluginManager.GetPlugins()[index];
+
+    QImage* img = new QImage(ImageToQImage(filter->Apply(&src_image, params[0]), pQImage->format()));
+    images.push_back(img);
+    Log(QString("Filter applied: ") + filter->Name().c_str());
+    emit FilterApplied(filter, img);
+}
+
+void Model::LoadPlugins(const QString &dirpath)
+{
+    QMetaObject::invokeMethod(this, "StartLoadPlugins", Q_ARG(QString, dirpath));
+}
+
+void Model::StartLoadPlugins(const QString &dirpath)
+{
+    pluginManager.LoadPlugins(dirpath);
+
+    emit PluginsLoaded(pluginManager.GetPlugins());
 }
 
 void Model::LoadImage(const QString& filename)
@@ -328,10 +381,76 @@ void Model::LoadImage(const QString& filename)
 
 void Model::StartLoadImage(const QString& filename)
 {
-    qoriginal_image = QImage(filename);
+    Log("Start loading image");
+    QFile file(filename);
+    if(!file.open(QIODevice::ReadOnly)){
+        Log(filename + ": Failed to open file");
+        return;
+    }
+    qoriginal_image.load(&file, "BMP");
     original_image = QImageToImage(qoriginal_image);
-    NotifyAll(Load, &qoriginal_image);
+
+    RemoveFilterImages();
+    images.clear();
+    images.push_back(&qoriginal_image);
+
+    Log("Image loaded");
+    emit ClearFilters();
     emit ImageLoaded(&qoriginal_image);
+}
+
+void Model::RemoveLastFilter()
+{
+    if(images.size() > 2) {
+        Log("Last filter removed");
+        images.pop_back();
+        emit LastFilterRemoved();
+    } else {
+        Log("No filter to remove");
+    }
+}
+
+void Model::SaveLastImage(QString path)
+{
+    QMetaObject::invokeMethod(this, "StartSaveLastImage", Q_ARG(QString, path));
+}
+
+void Model::StartSaveLastImage(QString path)
+{
+    if(images.size() <= 1){
+        Log("No image to save");
+        return;
+    }
+
+    QFile file(path);
+
+    if(file.open(QIODevice::WriteOnly)){
+        images[images.size()-1]->save(&file, "BMP");
+        Log(path + ": Image saved");
+        emit ImageSaved(QFileInfo(path).absoluteFilePath());
+        return;
+    }
+    QDir saveDir(QFileInfo(path).absolutePath());
+    if(saveDir.exists()){
+        Log(path + ": Failed to open file");
+        return;
+    }
+
+    if(!QDir().mkdir(saveDir.absolutePath())){
+        Log(saveDir.absolutePath() + ": Failed to create dir");
+        return;
+    }
+
+    if(file.open(QIODevice::WriteOnly)){
+        images[images.size()-1]->save(&file, "BMP");
+        Log(path + ": Image saved");
+        emit ImageSaved(path);
+        return;
+    } else {
+        Log(path + "Failed to open file");
+        return;
+    }
+
 }
 
 void Model::AlignImage()
@@ -341,6 +460,11 @@ void Model::AlignImage()
 
 void Model::StartAlignImage()
 {
+    Log("Model: start align image");
+    if(images.size() == 0){
+        Log("No image to align");
+        return;
+    }
     Image& srcImage = this->original_image;
 
     uint width = srcImage.n_cols;
@@ -383,28 +507,17 @@ void Model::StartAlignImage()
 
     aligned_image = aligned_img;
     qaligned_image = ImageToQImage(aligned_img, qoriginal_image.format());
-    NotifyAll(Align, &qaligned_image);
+
+    RemoveFilterImages();
+    images.clear();
+    images.push_back(&qoriginal_image);
+    images.push_back(&qaligned_image);
+
+    Log("Model: image aligned");
+
+    emit ClearFilters();
     emit ImageAligned(&qaligned_image);
 }
-
-
-void Model::NotifyAll(Event event, QImage* img)
-{
-    for(auto observer : observers){
-        observer->HandleEvent(event, img);
-    }
-}
-
-void Model::AddObserver(Observer *obs)
-{
-    observers.push_back(obs);
-}
-
-
-
-
-
-
 
 
 
@@ -547,7 +660,7 @@ public:
         for (uint y = 0; y < m.n_rows; ++y) {
             for (uint x = 0; x < m.n_cols; ++x) {
                 tie(r, g, b) = m(y, x);
-                //cout << y << ' ' << x << endl;
+                //cout + y + ' ' + x + endl;
                 sum_r += r * kernel(y, x);
                 sum_g += g * kernel(y, x);
                 sum_b += b * kernel(y, x);
@@ -579,7 +692,7 @@ Image Model::sobel_y(Image src_image) {
 Image Model::gaussian(Image src_image, double sigma, int radius)  {
     int size = 2 * radius + 1;
     Matrix<double> kernel(size, size);
-    //cout << "gaussian kernel: sigma = " << sigma << ", radius = " << radius << endl;
+    //cout + "gaussian kernel: sigma = " + sigma + ", radius = " + radius + endl;
     int x, y;
     double t, norm_coef = 0.;
     double temp = 2*sigma*sigma;

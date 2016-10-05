@@ -6,26 +6,25 @@
 #include <QLabel>
 #include <QProgressBar>
 
-#include "observer.h"
+#include "../../shared/headers/logger.h"
 
-class ImageHolder : public QWidget, public Observer
+class ImageHolder : public QWidget
 {
     Q_OBJECT
 
 public:
-    Event event;
     std::string title;
     QVBoxLayout *layout;
     QLabel *title_label;
     QLabel *image_label;
     QProgressBar* progressBar;
+    Logger& Log;
 
 public:
-    ImageHolder(Event event, std::string title, QProgressBar* progressBar, QWidget *parent=nullptr);
+    ImageHolder(std::string title, QProgressBar* progressBar, Logger& logger, QWidget *parent=nullptr);
 
-    void HandleEvent(Event msg, QImage *obj) override;
 public slots:
-    void HandleSignal(QImage *obj) override;
+    void HandleSignal(QImage *obj);
 };
 
 #endif // IMAGEHOLDER_H

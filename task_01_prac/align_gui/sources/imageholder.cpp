@@ -1,12 +1,9 @@
-#include "imageholder.h"
-#include <iostream>
+#include "../headers/imageholder.h"
 
 using std::string;
-using std::cout;
-using std::endl;
 
-ImageHolder::ImageHolder(Event event, string title, QProgressBar* progressBar, QWidget *parent)
-    : QWidget(parent), event(event), title(title), progressBar(progressBar)
+ImageHolder::ImageHolder(string title, QProgressBar* progressBar, Logger& logger, QWidget *parent)
+    : QWidget(parent), title(title), progressBar(progressBar), Log(logger)
 {
     image_label = new QLabel;
     image_label->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
@@ -25,22 +22,9 @@ ImageHolder::ImageHolder(Event event, string title, QProgressBar* progressBar, Q
     setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 }
 
-void ImageHolder::HandleEvent(Event e, QImage *img)
-{
-    cout << "ImageHolder handle event: " << e << endl;
-    if(e != event){
-        cout << "Skipping..." << endl;
-        return;
-    }
-
-    image_label->setPixmap(QPixmap::fromImage(*img));
-    this->show();
-    cout << "Handled" << endl;
-}
-
 void ImageHolder::HandleSignal(QImage *img)
 {
-    cout << "ImageHolder handle signal" << endl;
+    //Log("ImageHolder handle signal");
     image_label->setPixmap(QPixmap::fromImage(*img));
     this->show();
     progressBar->hide();

@@ -6,9 +6,8 @@
 #include <QThread>
 
 #include "matrix.h"
-#include "observer.h"
-
-typedef Matrix<std::tuple<int, int, int>> Image;
+#include "pluginmanager.h"
+#include "logger.h"
 
 struct Crop;
 
@@ -23,7 +22,9 @@ class Model : public QObject
     Image original_image;
     Image aligned_image;
 
-    std::vector<Observer*> observers;
+    QVector<QImage*> images;
+    PluginManager pluginManager;
+    Logger& Log;
 
     const double range_rel = 17./400.;
     //init this as range_rel * img_width
@@ -34,21 +35,32 @@ class Model : public QObject
 public slots:
     void StartAlignImage();
     void StartLoadImage(const QString& filename);
+    void StartLoadPlugins(const QString& dirpath);
+    void StartApplyFilter(int index, double* params);
+    void StartSaveLastImage(QString path);
 
 public:
-    Model();
+    Model(Logger& logger);
     ~Model();
 
-    void AddObserver(Observer*);
-    void NotifyAll(Event, QImage* obj);
     void LoadImage(const QString &fileinfo);
     void AlignImage();
+    void LoadPlugins(const QString& dirpath);
+    void ApplyFilter(int index, double* params);
+    void RemoveLastFilter();
+    void SaveLastImage(QString path);
 
 signals:
     void ImageLoaded(QImage* img);
     void ImageAligned(QImage* img);
+    void FilterApplied(PluginFilter*, QImage* img);
+    void PluginsLoaded(QVector<PluginFilter*> plugins);
+    void ClearFilters();
+    void LastFilterRemoved();
+    void ImageSaved(QString path);
 
 private:
+    void RemoveFilterImages();
     Image custom(Image src_image, Matrix<double> kernel);
     Image gaussian(Image src_image, double sigma, int radius);
     Image gaussian_separable(Image src_image, double sigma, int radius);
