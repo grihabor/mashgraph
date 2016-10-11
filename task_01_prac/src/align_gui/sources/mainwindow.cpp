@@ -9,7 +9,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     fileinfo(QDir::currentPath()),
-    pluginDirInfo("../plugins/bin"),
+    pluginDirInfo("./plugins"),
     Log(),
     model(Log)
 {
@@ -35,7 +35,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->progressBar->setValue(0);
     ui->progressBar->hide();
 
-    pluginsContainer = new PluginsContainer(&model, ui->views_layout, ui->progressBar, Log);
+    pluginsContainer = new PluginsContainer(&model, ui->views_layout, ui->progressBar, Log, this);
     ui->plugins_container_layout->addLayout(pluginsContainer);
     QObject::connect(&model, SIGNAL(ClearFilters()), pluginsContainer, SLOT(ClearFilters()));
 
@@ -46,6 +46,10 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(&model, SIGNAL(PluginsLoaded(QVector<PluginFilter*>)), pluginsContainer, SLOT(ShowPlugins(QVector<PluginFilter*>)));
     QObject::connect(&model, SIGNAL(LastFilterRemoved()), pluginsContainer, SLOT(RemoveLastFilter()));
     model.LoadPlugins(pluginDirInfo.absoluteFilePath());
+
+    QObject::connect(&model, SIGNAL(ImageAligned(QImage*)), this, SLOT(UnlockButtons()));
+    QObject::connect(&model, SIGNAL(ImageLoaded(QImage*)), this, SLOT(UnlockButtons()));
+    QObject::connect(&model, SIGNAL(FilterApplied(PluginFilter*,QImage*)), this, SLOT(UnlockButtons()));
 }
 
 void MainWindow::LogTextEdit(QString log)
@@ -72,6 +76,8 @@ void MainWindow::on_choose_file_button_clicked()
         return;
     }
     fileinfo.setFile(filename);
+
+    SetButtonState(true);
     ui->progressBar->show();
     model.LoadImage(filename);
     ui->filename_label->setText(fileinfo.absoluteFilePath());
@@ -80,8 +86,28 @@ void MainWindow::on_choose_file_button_clicked()
 
 void MainWindow::on_align_button_clicked()
 {
+    SetButtonState(true);
     ui->progressBar->show();
     model.AlignImage();    
+}
+
+void MainWindow::SetButtonState(bool b)
+{
+    ui->align_button->blockSignals(b);
+    ui->back_button->blockSignals(b);
+    ui->save_button->blockSignals(b);
+    ui->choose_dir_button->blockSignals(b);
+    ui->choose_file_button->blockSignals(b);
+    pluginsContainer->BlockButtons(b);
+}
+
+void MainWindow::UnlockButtons()
+{
+    SetButtonState(false);
+}
+void MainWindow::BlockButtons()
+{
+    SetButtonState(true);
 }
 
 void MainWindow::on_choose_dir_button_clicked()

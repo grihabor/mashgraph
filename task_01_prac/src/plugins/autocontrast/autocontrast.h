@@ -13,9 +13,16 @@ public:
     ~Autocontrast();
 };
 
+class AutocontrastSingleton : public Singleton
+{
+    PluginFilter* plugin;
+public:
+    PluginFilter* Get() override;
+    virtual ~AutocontrastSingleton();
+};
+
 extern "C"
-PluginFilter* GetFilter();
-extern "C"
-void CleanUp();
+void RegisterPlugins(Manager* manager);
+
 
 #endif // AUTOCONTRAST_H

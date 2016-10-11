@@ -5,17 +5,28 @@ using std::make_tuple;
 using std::get;
 using std::vector;
 
-PluginFilter* pFilter = nullptr;
 
-PluginFilter* GetFilter()
+MedianFilterSingleton singleton;
+
+PluginFilter*
+MedianFilterSingleton::Get()
 {
-    if(!pFilter)
-        pFilter = new MedianFilter;
-    return pFilter;
+    if(!plugin){
+        plugin = new MedianFilter;
+    }
+    return plugin;
 }
-void CleanUp()
+
+MedianFilterSingleton::~MedianFilterSingleton()
 {
-    //if(pFilter) delete pFilter;
+    delete plugin;
+}
+
+void RegisterPlugins(Manager* manager)
+{
+    if(manager){
+        manager->RegisterPlugin(&singleton);
+    }
 }
 
 Image median_const(Image src_image, int radius);

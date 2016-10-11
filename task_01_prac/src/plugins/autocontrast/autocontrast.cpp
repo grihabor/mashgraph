@@ -3,18 +3,27 @@
 using std::get;
 using std::make_tuple;
 
+AutocontrastSingleton singleton;
 
-PluginFilter* pFilter = nullptr;
-
-PluginFilter* GetFilter()
+PluginFilter*
+AutocontrastSingleton::Get()
 {
-    if(!pFilter)
-        pFilter = new Autocontrast;
-    return pFilter;
+    if(!plugin){
+        plugin = new Autocontrast;
+    }
+    return plugin;
 }
-void CleanUp()
+
+AutocontrastSingleton::~AutocontrastSingleton()
 {
-    //if(pFilter) delete pFilter;
+    delete plugin;
+}
+
+void RegisterPlugins(Manager* manager)
+{
+    if(manager){
+        manager->RegisterPlugin(&singleton);
+    }
 }
 
 Autocontrast::Autocontrast()

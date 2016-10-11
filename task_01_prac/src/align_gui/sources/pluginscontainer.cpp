@@ -1,13 +1,16 @@
 #include "../headers/pluginscontainer.h"
 #include "../../shared/headers/pluginfilter.h"
+#include "../headers/mainwindow.h"
 
 #include <QPushButton>
 #include <QComboBox>
 
-PluginsContainer::PluginsContainer(Model* m, QBoxLayout* l, QProgressBar* pb, Logger& logger)
+PluginsContainer::PluginsContainer(Model* m, QBoxLayout* l, QProgressBar* pb, Logger& logger, MainWindow* window)
     :   imageHoldersLayout(l), progressBar(pb), model(m), Log(logger),
-      comboBox(nullptr), applyButton(nullptr), paramsLabel(nullptr), param1(nullptr)
-{}
+      comboBox(nullptr), applyButton(nullptr), paramsLabel(nullptr), param1(nullptr), mainwindow(window)
+{
+    QObject::connect(model, SIGNAL(FilterApplied(PluginFilter*, QImage*)), this, SLOT(FilterApplied(PluginFilter*, QImage*)));
+}
 
 PluginsContainer::~PluginsContainer()
 {
@@ -16,7 +19,6 @@ PluginsContainer::~PluginsContainer()
 
 void PluginsContainer::CleanUp()
 {
-    plugins.clear();
     for(ImageHolder* h : imageHolders){
         imageHoldersLayout->removeWidget(h);
         delete h;
@@ -42,7 +44,6 @@ void PluginsContainer::CleanUp()
         param1 = nullptr;
     }
     imageHolders.clear();
-    plugins.clear();
 }
 
 void PluginsContainer::ClearFilters()
@@ -66,18 +67,17 @@ void PluginsContainer::ShowPlugins(QVector<PluginFilter *> pluginVector)
     }
 
     Log("Show plugins list");
-    plugins = pluginVector;
 
     applyButton = new QPushButton;
     applyButton->setText("Apply filter");
 
     comboBox = new QComboBox;
-    for(PluginFilter* plugin : plugins){
+    for(PluginFilter* plugin : pluginVector){
         Log(QString("Add \'") + plugin->Name().c_str() + "\' item");
         comboBox->addItem(plugin->Name().c_str());
     }
     QObject::connect(applyButton, SIGNAL(clicked()), this, SLOT(ApplyButtonClicked()));
-    QObject::connect(model, SIGNAL(FilterApplied(PluginFilter*, QImage*)), this, SLOT(FilterApplied(PluginFilter*, QImage*)));
+    QObject::connect(applyButton, SIGNAL(clicked()), mainwindow, SLOT(BlockButtons()));
 
     paramsLabel = new QLabel;
     paramsLabel->setText("Params: ");
@@ -90,6 +90,12 @@ void PluginsContainer::ShowPlugins(QVector<PluginFilter *> pluginVector)
     addWidget(paramsLabel);
     addWidget(param1);
     addWidget(applyButton);
+}
+
+void PluginsContainer::BlockButtons(bool b)
+{
+    if(applyButton)
+        applyButton->blockSignals(b);
 }
 
 void PluginsContainer::ApplyButtonClicked()

@@ -11,4 +11,18 @@ public:
     virtual ~PluginFilter(){}
 };
 
+class Singleton
+{
+public:
+    virtual PluginFilter* Get() = 0;
+    virtual ~Singleton(){}
+};
+
+class Manager
+{
+public:
+    virtual void RegisterPlugin(Singleton* singleton) = 0;
+    virtual ~Manager(){}
+};
+
 #endif // PLUGINFILTER_H

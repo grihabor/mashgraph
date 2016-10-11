@@ -33,6 +33,10 @@ private slots:
 
     void on_save_button_clicked();
 
+public slots:
+    void UnlockButtons();
+    void BlockButtons();
+
 private:
     Ui::MainWindow *ui;
     QFileInfo fileinfo;
@@ -41,6 +45,8 @@ private:
     PluginsContainer* pluginsContainer;
     Logger Log;
     Model model;
+
+    void SetButtonState(bool b);
 };
 
 #endif // MAINWINDOW_H

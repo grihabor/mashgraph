@@ -11,6 +11,11 @@ PluginManager::PluginManager(Logger& logger)
     : Log(logger)
 {}
 
+void PluginManager::RegisterPlugin(Singleton *singleton)
+{
+    plugins.append(singleton->Get());
+}
+
 void PluginManager::LoadPlugins(const QString& dirpath)
 {
     CleanUp();
@@ -23,9 +28,9 @@ void PluginManager::LoadPlugins(const QString& dirpath)
     QDirIterator it(dir, QDirIterator::NoIteratorFlags);
     QString path;
 
-    const char *symbol = "GetFilter";
-    typedef PluginFilter* (*GetFilter)(void);
-    GetFilter get_filter;
+    const char *symbol = "RegisterPlugins";
+    typedef void (*RegisterPlugins)(Manager*);
+    RegisterPlugins register_plugins;
     while(it.hasNext()){
         path = it.next();
         if(it.fileName() == "." || it.fileName() == ".."){
@@ -43,8 +48,8 @@ void PluginManager::LoadPlugins(const QString& dirpath)
             continue;
         }
 
-        get_filter = (GetFilter) dlsym(handle, symbol);
-        if(get_filter == nullptr){
+        register_plugins = (RegisterPlugins) dlsym(handle, symbol);
+        if(register_plugins == nullptr){
             Log(path + ": Failed to get symbol \'" + symbol + "\'");
 
             dlclose(handle);
@@ -52,8 +57,9 @@ void PluginManager::LoadPlugins(const QString& dirpath)
             continue;
         }
 
-        Log(it.filePath() + ": Plugin \'" + get_filter()->Name().c_str() + "\' loaded successfully");
-        plugins.push_back(get_filter());
+        register_plugins(this);
+        Log(it.filePath() + ": Plugin \'" + plugins[plugins.size()-1]->Name().c_str() + "\' loaded successfully");
+
         libHandles[nLibHandles++] = handle;
     }
     Log(QString("PluginManager: ") + QString::number(plugins.size()) + " plugins loaded");
@@ -61,14 +67,7 @@ void PluginManager::LoadPlugins(const QString& dirpath)
 
 void PluginManager::CleanUp()
 {
-    const char* symbol = "CleanUp";
     for(int i = 0; i < nLibHandles; ++i){
-        void (*clean)() = (void (*)())dlsym(libHandles[i], symbol);
-        if(!clean){
-            Log(dlerror());
-        } else {
-            clean();
-        }
         dlclose(libHandles[i]);
     }
     plugins.clear();

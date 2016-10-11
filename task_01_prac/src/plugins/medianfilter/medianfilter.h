@@ -12,9 +12,16 @@ public:
     ~MedianFilter();
 };
 
+class MedianFilterSingleton : public Singleton
+{
+    PluginFilter* plugin;
+public:
+    PluginFilter* Get() override;
+    virtual ~MedianFilterSingleton();
+};
+
 extern "C"
-PluginFilter* GetFilter();
-extern "C"
-void CleanUp();
+void RegisterPlugins(Manager* manager);
+
 
 #endif // MEDIANFILTER_H

@@ -6,7 +6,7 @@
 #include <QVector>
 #include <vector>
 
-class PluginManager
+class PluginManager : public Manager
 {
     QVector<PluginFilter*> plugins;
     void* libHandles[256] = {};  //QVector<void*> and std::vector<void*> - runtime error - ???
@@ -18,6 +18,7 @@ private:
 
 public:
     PluginManager(Logger& log);
+    virtual void RegisterPlugin(Singleton* singleton) override;
     void LoadPlugins(const QString& dirpath);
     QVector<PluginFilter*> GetPlugins();
     ~PluginManager();

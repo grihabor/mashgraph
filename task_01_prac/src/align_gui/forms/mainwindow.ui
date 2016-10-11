@@ -189,7 +189,11 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <item>
-           <widget class="QTextEdit" name="log_textedit"/>
+           <widget class="QTextEdit" name="log_textedit">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>

@@ -12,11 +12,12 @@
 #include <QComboBox>
 #include <QDoubleSpinBox>
 
+class MainWindow;
+
 class PluginsContainer : public QHBoxLayout
 {
     Q_OBJECT
 
-    QVector<PluginFilter*> plugins;
     QVector<ImageHolder*> imageHolders;
     QBoxLayout* imageHoldersLayout;
     QProgressBar* progressBar;
@@ -26,13 +27,14 @@ class PluginsContainer : public QHBoxLayout
     QPushButton* applyButton;
     QLabel* paramsLabel;
     QDoubleSpinBox* param1;
+    MainWindow* mainwindow;
     double params[1];
 
 private:
     void CleanUp();
 
 public:
-    PluginsContainer(Model *model, QBoxLayout *layout, QProgressBar *progressBar, Logger& logger);
+    PluginsContainer(Model *model, QBoxLayout *layout, QProgressBar *progressBar, Logger& logger, MainWindow* mainwindow);
     ~PluginsContainer();
 
 public slots:
@@ -41,6 +43,7 @@ public slots:
     void FilterApplied(PluginFilter* filter, QImage *img);
     void ClearFilters();
     void RemoveLastFilter();
+    void BlockButtons(bool);
 };
 
 #endif // PLUGINSCONTAINER_H
