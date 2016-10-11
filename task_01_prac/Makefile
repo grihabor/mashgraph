@@ -11,10 +11,10 @@ clean:
 DIR_PATH = $(shell pwd)
 
 run:
-	docker run -i -t -v $(DIR_PATH)/bin:/align align bash
+	docker run -i -t -v $(DIR_PATH)/bin:/align grihabor/align bash
 
 build:
-	docker build -t align .
+	docker build -t grihabor/align .
 
 build-no-cache:
 	docker build --no-cache -t align .
