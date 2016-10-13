@@ -1,5 +1,10 @@
 from sys import argv
-from statistics import mean
+
+
+def mean(l):
+    if len(l) == 0:
+        return 0
+    return sum(l)/len(l)
 
 values = []
 with open(argv[1]) as f:
