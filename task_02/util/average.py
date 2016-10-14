@@ -1,6 +1,5 @@
 from sys import argv
 
-
 def mean(l):
     if len(l) == 0:
         return 0
