@@ -7,7 +7,7 @@ git clone https://github.com/grihabor/mashgraph
 cd mashgraph/task_02
 ```
 В текущую директорию положите папку с проектом (template) и папку с данными (data).
-Теперь переименовать папку data/multiclass в папку data/base:
+Теперь нужно переименовать папку data/multiclass в папку data/base:
 ```
 mv data/multiclass data/base
 ```
