@@ -8,13 +8,14 @@ build:
 clean:
 	cd template; make clean	
 train:
-	template/build/bin/task2 -d data/multiclass/train_labels.txt \
-		-m output/model.txt --train
+	template/build/bin/task2 -d $(CUR_PATH)/data/multiclass/train_labels.txt \
+		-m $(CUR_PATH)/output/model.txt --train
 predict:
-	template/build/bin/task2 --predict --predicted_labels=output/predictions.txt \
-		-d data/multiclass/test_labels.txt -m output/model.txt 	
+	template/build/bin/task2 --predict --predicted_labels=$(CUR_PATH)/output/predictions.txt \
+		-d data/multiclass/test_labels.txt -m $(CUR_PATH)/output/model.txt 	
 test:
-	python template/compare.py data/multiclass/test_labels.txt output/predictions.txt
+	python template/compare.py $(CUR_PATH)/data/multiclass/test_labels.txt $(CUR_PATH)/predictions.txt
+
 
 cross:
 	make build
@@ -22,14 +23,16 @@ cross:
 	rm -f output/results.txt
 	mkdir -p output
 	
-	python > output/params.txt util/get_params.py template/src/task2.cpp
+	python > output/params.txt util/get_params.py $(CUR_PATH)/template/src/task2.cpp
 	
-	for i in `seq 20`; do \
+	for i in `seq 3`; do \
 		python util/gendata.py .. .9 ; \
 		make train ; \
 		make predict ; \
-		python >> output/results.txt template/compare.py \
-			data/multiclass/test_labels.txt output/predictions.txt ; \
+		mv $(CUR_PATH)/output/predictions.txt $(CUR_PATH)/predictions.txt ; \
+		python >> output/results.txt $(CUR_PATH)/template/compare.py \
+			$(CUR_PATH)/data/multiclass/test_labels.txt $(CUR_PATH)/predictions.txt ; \
+		mv $(CUR_PATH)/predictions.txt $(CUR_PATH)/output/predictions.txt ; \
 	done
-	
-	python util/average.py output/results.txt
+		
+	python util/average.py $(CUR_PATH)/output/results.txt
