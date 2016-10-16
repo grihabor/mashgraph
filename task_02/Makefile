@@ -29,7 +29,7 @@ cross: output_dir
 	
 	python > output/params.txt util/get_params.py $(CUR_PATH)/template/src/task2.cpp
 	
-	for i in `seq 3`; do \
+	for i in `seq 20`; do \
 		python util/gendata.py .. .9 ; \
 		make train ; \
 		make predict ; \
@@ -40,3 +40,13 @@ cross: output_dir
 
 output_dir:
 	mkdir -p output
+
+tar:
+	make build
+	cp data/base/* data/multiclass/ -f -r
+	make train
+	cp output/model.txt template/model.txt
+	cd template; make clean
+	tar -czvf task_02.tar.gz template
+	rm template/model.txt
+	
