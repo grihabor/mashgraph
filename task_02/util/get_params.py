@@ -15,5 +15,5 @@ try:
 
             if line[0] == 'int' and line[1].upper() == line[1]:
                 print(line[1], '=', line[3][:-1])
-except FileNotFoundError as e:
+except IOError as e:
     print(e)

@@ -51,6 +51,15 @@ tar:
 	make train
 	cp output/model.txt template/model.txt
 	cd template; make clean
+	
+	if [ -d template/.idea ]; then \
+		mv template/.idea ./.idea-backup ; \
+	fi
+	
 	tar -czvf task_02.tar.gz template
 	rm template/model.txt
+	
+	if [ -d ./.idea-backup ]; then \
+		mv ./.idea-backup template/.idea ; \
+	fi
 	
