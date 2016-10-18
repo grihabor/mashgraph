@@ -27,7 +27,7 @@ cross: output_dir
 	
 	rm -f output/results.txt
 	
-	python > output/params.txt util/get_params.py $(CUR_PATH)/template/src/task2.cpp
+	python > output/params.txt util/get_params.py $(CUR_PATH)/template/src/task.cpp
 	
 	for i in `seq 20`; do \
 		python util/gendata.py .. .9 ; \
@@ -43,7 +43,11 @@ output_dir:
 
 tar:
 	make build
-	cp data/base/* data/multiclass/ -f -r
+	if [ -d data/base ]; then \
+		cp data/base/* data/multiclass/ -f -r ; \
+	else \
+		cp data/labels.txt data/multiclass/train_labels.txt ; \
+	fi 
 	make train
 	cp output/model.txt template/model.txt
 	cd template; make clean
