@@ -1,5 +1,10 @@
 all:
-	make cross
+	rm output/results.txt
+	make build
+	make train
+	make predict
+	make test
+	cat output/results.txt
 	
 CUR_PATH = $(shell pwd)
 
