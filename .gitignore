@@ -1,14 +1,4 @@
 *.bmp
 *.tar.gz
 *.zip
-task_01/align_project/align_channels/bridge/include/
-task_01/align_project/bridge/lib/
-task_01/align_project/build/
-task_01/mail.py
 git_add.sh
-task_01_prac/src/bin/
-task_01_prac/src/plugins/
-task_01_prac/bin/
-task_01_prac/lib/
-task_02/data/
-task_02/.idea

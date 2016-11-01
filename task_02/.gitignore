@@ -1,4 +1,5 @@
-data/
-template/
-*.cpp
+.idea
+data
+output
+template/build
 *.txt
