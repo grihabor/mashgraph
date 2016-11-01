@@ -1,0 +1,11 @@
+.idea
+data
+output
+template/build
+template/bridge
+!template/bridge/Makefile
+*.txt
+*.o
+*.a
+template/bridge.touch
+*.make
