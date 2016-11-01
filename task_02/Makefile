@@ -1,5 +1,5 @@
-all:
-	rm output/results.txt
+all: output_dir
+	rm -f output/results.txt
 	make build
 	make train
 	make predict
@@ -13,6 +13,7 @@ build:
 clean:
 	cd template; make clean	
 	rm -f -r output
+	rm -f task_02.tar.gz
 
 train: output_dir
 	template/build/bin/task2 -d $(CUR_PATH)/data/multiclass/train_labels.txt \

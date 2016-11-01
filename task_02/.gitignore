@@ -2,4 +2,8 @@
 data
 output
 template/build
+template/bridge
+!template/bridge/Makefile
 *.txt
+*.o
+*.a
