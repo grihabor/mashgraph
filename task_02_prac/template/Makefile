@@ -93,6 +93,20 @@ clean:
 	make -C $(dir $(BRIDGE_MAKE)) -f $(notdir $(BRIDGE_MAKE)) clean
 	rm -rf $(BUILD_DIR) $(BRIDGE_INCLUDE_DIR) $(BRIDGE_LIBRARY_DIR)
 	rm -f bridge.touch
+	rm -f tests
+	
+GTEST_DIR = $(shell pwd)/externals/googletest
+TESTS_SRC = src/gradient_unittest.cc src/gradient.cpp
+TESTS_LIB = $(GTEST_DIR)/googlemock/gtest/libgtest.a externals/EasyBMP/lib/libeasybmp.a
+
+test: ./tests
+	./tests
+
+./tests: $(TESTS_SRC)
+	g++ -isystem $(GTEST_DIR)/googletest/include -pthread -std=c++11 \
+		$(TESTS_SRC) $(TESTS_LIB) -o tests
+
+	
 
 # If you still have "WTF?!" feeling, try reading teaching book
 # by Mashechkin & Co. http://unicorn.ejudge.ru/instr.pdf

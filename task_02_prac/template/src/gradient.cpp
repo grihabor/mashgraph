@@ -5,9 +5,6 @@
 #include <xmmintrin.h>
 
 using std::vector;
-using std::cout;
-using std::cin;
-using std::endl;
 using std::ostream;
 
 Matrix<float> BMPToGrayscale(BMP* bmp)
@@ -119,15 +116,10 @@ Matrix<float> sobel_y(const Matrix<float>& src_image) {
 Matrix<float> simple::gradient(const Matrix<float>& image) {
 
     Matrix<float> grad_x = sobel_x(image);
-    cout << endl << "gradient_x" << endl;
-    cout << grad_x << endl;
     Matrix<float> grad_y = sobel_y(image);
-    cout << "gradient_y" << endl;
-    cout << grad_y << endl;
-
     return sqrt(Square(grad_x) + Square(grad_y));
 }
-
+/*
 ostream& operator<<(ostream& os, __m128 x)
 {
     float data[] = {0, 0, 0, 0};
@@ -144,7 +136,8 @@ ostream& operator<<(ostream& os, const float *data)
     return os;
 }
 
-__m128 gradient_vec(float *raw1, float *raw2, float *raw3)
+*/
+inline __m128 gradient_vec(float *raw1, float *raw2, float *raw3)
 {
     //calc 1st line
     float * raw = raw1;
@@ -190,80 +183,55 @@ __m128 gradient_vec(float *raw1, float *raw2, float *raw3)
     return grad;
 }
 
-void log_coords(uint y, uint x, const Matrix<float>& img)
-{
-    //return;
-    cout << '(' << y << ", " << x << ") out of (" <<
-         img.n_rows << ", " << img.n_cols << ")" << endl;
-}
-
 Matrix<float> sse::gradient(const Matrix<float>& image)
 {
     Matrix<float> img(image);
     img = img.extra_borders(1, 1);
     Matrix<float> r(img.n_rows - 2, img.n_cols - 2);
 
-    uint x, y;
+
+    int x, y;
     float *raw;
 
     // TODO: check borders
-    for(y = 0; y < img.n_rows - 2; ++y) {
-        for(x = 0; x < img.n_cols - 5; x += 4) {
-
-                log_coords(y, x, img);
+    for(y = 0; y < int(img.n_rows - 2); ++y) {
+        for(x = 0; x < int(img.n_cols - 5); x += 4) {
 
             raw = img.raw_ptr() + (y*img.n_cols + x);
-
-            __m128 grad = gradient_vec(raw, raw + img.n_cols, raw + 2 * img.n_cols);
-
-            cout << grad;
-
-            cout << r.raw_ptr() + (y*r.n_cols + x);
-
+            __m128 grad_vec = gradient_vec(raw, raw + img.n_cols, raw + 2 * img.n_cols);
             // store result
-            _mm_storeu_ps(r.raw_ptr() + (y*r.n_cols + x), grad);
-
-            cout << "here";
+            _mm_storeu_ps(r.raw_ptr() + (y*r.n_cols + x), grad_vec);
         }
-        cout << "endfor" << endl;
-
-
-
-        log_coords(y, x, img);
 
         // number of pixels left
         int n = (img.n_cols - 2) - x;
-        cout << "n = " << n << endl;
 
         // all pixels calculated
         if(n == 0){
             continue;
         }
+
+        // if not: create temp buffers
         // 1            [          ]
         // 2               [          ]
         // 3                  [          ]
         float data1[] = {0, 0, 0, 0, 0, 0};
         float data2[] = {0, 0, 0, 0, 0, 0};
         float data3[] = {0, 0, 0, 0, 0, 0};
+
+        // fill buffers from image
         for(int i = 0; i < n + 2; ++i) {
             data1[i] = img(y, x + i);
             data2[i] = img(y + 1, x + i);
             data3[i] = img(y + 2, x + i);
         }
-        cout << data1 << data2 << data3;
 
-        __m128 grad = gradient_vec(data1, data2, data3);
-
-        cout << '!' << grad;
-
-        _mm_storeu_ps(data1, grad);
-
-        cout << data1;
+        // calc gradient and store it in resulting image
+        __m128 grad_vec = gradient_vec(data1, data2, data3);
+        _mm_storeu_ps(data1, grad_vec);
         for(int i = 0; i < n; ++i) {
             r(y, x + i) = data1[i];
         }
-        cout << endl;
-        cout << r;
     }
 
 
