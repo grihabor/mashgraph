@@ -122,6 +122,12 @@ public:
 	const Matrix<ValueT> submatrix(uint prow, uint pcol,
 		uint rows, uint cols) const;
 
+    ValueT * raw_ptr()
+    {
+        return _data.get();
+    }
+
+
 private:
 	// Stride - number of elements between two rows (needed for efficient
 	// submatrix function without memory copy)
