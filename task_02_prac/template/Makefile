@@ -100,7 +100,7 @@ TESTS_SRC = src/gradient_unittest.cc src/gradient.cpp
 TESTS_LIB = $(GTEST_DIR)/googlemock/gtest/libgtest.a externals/EasyBMP/lib/libeasybmp.a
 
 test: ./tests
-	./tests
+	./tests Lenna.bmp
 
 ./tests: $(TESTS_SRC)
 	g++ -isystem $(GTEST_DIR)/googletest/include -pthread -std=c++11 \

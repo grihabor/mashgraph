@@ -6,7 +6,7 @@
 #include <memory>
 
 #include "../include/gradient.h"
-
+#include "../include/Timer.h"
 #define EPSILON 0.00001
 
 using std::unique_ptr;
@@ -18,11 +18,19 @@ int main(int argc, char** argv) {
 
     SetEasyBMPwarningsOff();
 
-    if(argc != 2){
-        cout << "Usage: task2 <img_filename>";
+    if(argc < 3 || argc > 4 || (argc == 4 && std::string(argv[1]) != "--sse")){
+        cout << "Usage: task2 [--sse] FILENAME RUN_COUNT" << endl;
+        cout << "Calculate gradient of image FILENAME, run RUN_COUNT"
+             << " times and print average time" << endl;
         return 0;
     }
-    const char *input_filename = argv[1];
+    const char *input_filename;
+    bool use_sse;
+    int RUN_COUNT;
+
+    input_filename = argv[argc-2];
+    use_sse = (argc == 4);
+    RUN_COUNT = atoi(argv[argc-1]);
 
     std::unique_ptr<BMP> image(new BMP());
 
@@ -30,13 +38,19 @@ int main(int argc, char** argv) {
     image->ReadFromFile(input_filename);
 
     Matrix<float> img = BMPToGrayscale(image.get());
-    auto g2 = sse::gradient(img);
-    auto g1 = simple::gradient(img);
+    Matrix<float> grad;
+    Timer t;
 
-    if(abs(g1(0,0) - g2(0,0)) < EPSILON){
-        cout << "OK" << endl;
+
+    if(use_sse){
+        t.start();
+        for(int i = 0; i < RUN_COUNT; ++i)
+            grad = sse::gradient(img);
+        t.check("SSE   ");
     } else {
-        cout << "BAD" << endl;
+        t.start();
+        for (int i = 0; i < RUN_COUNT; ++i)
+            grad = simple::gradient(img);
+        t.check("Simple");
     }
-    cout << endl;
 }

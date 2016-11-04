@@ -23,13 +23,13 @@ bool operator==(const Matrix<float> &m1, const Matrix<float> &m2) {
 TEST(GradientTest, Zero_1x1){
     Matrix<float> m(1, 1);
     m(0, 0) = 0.;
-    EXPECT_EQ(m, sse::gradient(m));
+    ASSERT_EQ(m, sse::gradient(m));
 }
 
 TEST(GradientTest, Zero_2x2){
     Matrix<float> m = {{0, 0},
                        {0, 0}};
-    EXPECT_EQ(m, sse::gradient(m)
+    ASSERT_EQ(m, sse::gradient(m)
     );
 }
 
@@ -39,8 +39,7 @@ TEST(GradientTest, Zero_5x5){
                        {0, 0, 0, 0, 0},
                        {0, 0, 0, 0, 0},
                        {0, 0, 0, 0, 0}};
-    EXPECT_EQ(m, sse::gradient(m)
-    );
+    ASSERT_EQ(m, sse::gradient(m));
 }
 
 TEST(GradientTest, Const_2x2){
@@ -63,11 +62,43 @@ TEST(GradientTest, Const_5x5){
                        {0, 0, 0, 0, 0},
                        {0, 0, 0, 0, 0}};
 
-    EXPECT_EQ(z, sse::gradient(m));
+    ASSERT_EQ(z, sse::gradient(m));
+}
+
+TEST(GradientTest, Const_4x8){
+    int height = 4;
+    int width = 8;
+    float c = -3.1415;
+
+    Matrix<float> m(height, width);
+    Matrix<float> z(height, width);
+
+    for(int y = 0; y < height; ++y)
+        for(int x = 0; x < width; ++x){
+            m(y, x) = c;
+            z(y, x) = 0.;
+        }
+
+    ASSERT_EQ(z, sse::gradient(m));
+}
+
+char **argv;
+int argc;
+
+TEST(GradientTest, Lenna){
+    ASSERT_GE(argc, 2);
+    char *filename = argv[1];
+    std::unique_ptr<BMP> image(new BMP());
+    image->ReadFromFile(filename);
+    Matrix<float> img = BMPToGrayscale(image.get());
+
+    ASSERT_EQ(simple::gradient(img), sse::gradient(img));
 }
 
 
 int main(int argc, char **argv) {
+    ::argv = argv;
+    ::argc = argc;
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
