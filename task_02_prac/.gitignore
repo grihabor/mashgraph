@@ -9,3 +9,4 @@ template/bridge
 *.a
 template/bridge.touch
 *.make
+template/tests
