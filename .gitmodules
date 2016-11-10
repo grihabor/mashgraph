@@ -1,0 +1,3 @@
+[submodule "task_03"]
+	path = task_03
+	url = ./task_03
