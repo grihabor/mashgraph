@@ -17,3 +17,6 @@ clean:
 test:
 	cd template; make test
 	
+doc: 
+	cd template; doxygen
+	mv template/html doc

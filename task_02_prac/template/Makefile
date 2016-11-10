@@ -106,7 +106,6 @@ test: ./tests
 	g++ -isystem $(GTEST_DIR)/googletest/include -isystem include \
 	    -isystem externals/EasyBMP/include -pthread -std=c++11 \
 	    $(TESTS_SRC) $(TESTS_LIB) -o build/bin/tests
-
 	
 
 # If you still have "WTF?!" feeling, try reading teaching book

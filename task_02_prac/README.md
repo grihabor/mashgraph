@@ -14,3 +14,9 @@ make all
 ```
 make test
 ```
+Чтобы сгенерировать документацию:
+```
+sudo apt install doxygen
+sudo apt install graphviz
+make doc
+```
