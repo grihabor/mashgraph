@@ -6,6 +6,10 @@
 #include <iomanip>
 #include <string>
 
+/** @file Timer.h
+ * Time operations.
+ */
+
 class Timer
 {
 	friend std::ostream& operator<<(std::ostream& os, Timer& t);

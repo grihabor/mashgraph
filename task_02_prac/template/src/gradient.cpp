@@ -1,8 +1,13 @@
-#include "../include/gradient.h"
+#include "gradient.h"
 
 #include <iostream>
-#include <stdio.h>
 #include <xmmintrin.h>
+
+/** @file gradient.cpp
+ * Implementation for gradient module.
+ *
+ * This file contatins implementation of functions for gradient calculation.
+ */
 
 using std::vector;
 using std::ostream;
@@ -23,20 +28,30 @@ Matrix<float> BMPToGrayscale(BMP* bmp)
     return result;
 }
 
+/**
+ * Performs itemwise square computation.
+ *
+ * Takes matrix IMG and returns it's square.
+ */
 template<typename T>
-Matrix<T> Square(const Matrix<T> &m)
+Matrix<T> Square(const Matrix<T> &IMG)
 {
-    Matrix<T> result(m.n_rows, m.n_cols);
+    Matrix<T> result(IMG.n_rows, IMG.n_cols);
     T t;
-    for(uint i = 0; i < m.n_rows; ++i){
-        for(uint j = 0; j < m.n_cols; ++j){
-            t = m(i, j)*m(i, j);
+    for(uint i = 0; i < IMG.n_rows; ++i){
+        for(uint j = 0; j < IMG.n_cols; ++j){
+            t = IMG(i, j)*IMG(i, j);
             result(i, j) = t;
         }
     }
     return result;
 }
 
+/**
+ * Performs itemwise addition.
+ *
+ * Takes matrices m1 and m2 and returns their sum.
+ */
 template<typename T>
 Matrix<T> operator +(const Matrix<T> &m1, const Matrix<T> &m2)
 {
@@ -51,21 +66,28 @@ Matrix<T> operator +(const Matrix<T> &m1, const Matrix<T> &m2)
     return result;
 }
 
+/**
+ * Performs itemwise square root computation.
+ *
+ * Takes matrix IMG and returns it's square root.
+ */
 template<typename T>
-Matrix<T> sqrt(const Matrix<T> &m)
+Matrix<T> sqrt(const Matrix<T> &IMG)
 {
-    Matrix<T> result(m.n_rows, m.n_cols);
+    Matrix<T> result(IMG.n_rows, IMG.n_cols);
     T t;
-    for(uint i = 0; i < m.n_rows; ++i){
-        for(uint j = 0; j < m.n_cols; ++j){
-            t = sqrt(m(i, j));
+    for(uint i = 0; i < IMG.n_rows; ++i){
+        for(uint j = 0; j < IMG.n_cols; ++j){
+            t = sqrt(IMG(i, j));
             result(i, j) = t;
         }
     }
     return result;
 }
 
-
+/**
+ * Class to use with Matrix<T>::unary_map(const UnaryMatrixOperator &)
+ */
 template<typename T>
 class CustomOp
 {
@@ -90,6 +112,11 @@ public:
     }
 };
 
+/**
+ * Applies filter to an image.
+ *
+ * Takes image src_image, applies filter with kernel and returns the result.
+ */
 template<typename T>
 Matrix<T> custom(const Matrix<T>& src_image, const Matrix<T>& kernel) {
 
@@ -99,6 +126,9 @@ Matrix<T> custom(const Matrix<T>& src_image, const Matrix<T>& kernel) {
     return src_image.unary_map(CustomOp<float>(kernel));
 }
 
+/**
+ * Calculates horizontal sobel filter.
+ */
 Matrix<float> sobel_x(const Matrix<float>& src_image) {
     Matrix<float> kernel = {{-1, 0, 1},
                             {-2, 0, 2},
@@ -106,6 +136,9 @@ Matrix<float> sobel_x(const Matrix<float>& src_image) {
     return custom(src_image, kernel);
 }
 
+/**
+ * Calculates vertical sobel filter.
+ */
 Matrix<float> sobel_y(const Matrix<float>& src_image) {
     Matrix<float> kernel = {{-1, -2, -1},
                             {0, 0, 0},
@@ -113,6 +146,9 @@ Matrix<float> sobel_y(const Matrix<float>& src_image) {
     return custom(src_image, kernel);
 }
 
+/**
+ * Gradient function simple implementation.
+ */
 Matrix<float> simple::gradient(const Matrix<float>& image) {
 
     Matrix<float> grad_x = sobel_x(image);
@@ -137,24 +173,41 @@ ostream& operator<<(ostream& os, const float *data)
 }
 
 */
-inline __m128 gradient_vec(float *raw1, float *raw2, float *raw3)
+
+/**
+ * Calculates 4 gradients and returns them.
+ *
+ * Takes image IMG with size of 3x6 and calculates gradients for elements IMG[1][1], IMG[1][2], IMG[1][3] and IMG[1][4]
+ *
+ * @param row1 float[6] aka IMG+0
+ *
+ * This is first row of the image IMG
+ * @param row2 float[6] aka IMG+1
+ *
+ * This is second row of the image IMG
+ * @param row3 float[6] aka IMG+2
+ *
+ * This is third row of the image IMG
+ * @return 4 gradients for elements IMG[1][1], IMG[1][2], IMG[1][3] and IMG[1][4]
+ */
+inline __m128 gradient_vec(float *row1, float *row2, float *row3)
 {
     //calc 1st line
-    float * raw = raw1;
+    float * raw = row1;
     __m128 a11 = _mm_loadu_ps(raw);
     __m128 a12 = _mm_loadu_ps(raw + 1);
     a12 = _mm_add_ps(a12, a12);
     __m128 a13 = _mm_loadu_ps(raw + 2);
 
     // calc 2nd line
-    raw = raw2;
+    raw = row2;
     __m128 a21 = _mm_loadu_ps(raw);
     a21 = _mm_add_ps(a21, a21);
     __m128 a23 = _mm_loadu_ps(raw + 2);
     a23 = _mm_add_ps(a23, a23);
 
     // calc 3rd line
-    raw = raw3;
+    raw = row3;
     __m128 a31 = _mm_loadu_ps(raw);
     __m128 a32 = _mm_loadu_ps(raw + 1);
     a32 = _mm_add_ps(a32, a32);
@@ -183,6 +236,9 @@ inline __m128 gradient_vec(float *raw1, float *raw2, float *raw3)
     return grad;
 }
 
+/**
+ * Gradient function SSE implementation.
+ */
 Matrix<float> sse::gradient(const Matrix<float>& image)
 {
     Matrix<float> img(image);

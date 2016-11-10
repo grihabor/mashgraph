@@ -1,8 +1,10 @@
+RUN_COUNT = 100
+
 all: 	
 	make build
 	rm -f speed_up.txt
 	# recursively extract features
-	find data -name '*.bmp' -exec python run.py '{}' 100 \;
+	find data -name '*.bmp' -exec python run.py '{}' $(RUN_COUNT) \;
 	python average.py speed_up.txt speed up
 
 	
