@@ -2,3 +2,4 @@
 *.tar.gz
 *.zip
 git_add.sh
+build
